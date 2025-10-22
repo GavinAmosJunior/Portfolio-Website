@@ -1,4 +1,8 @@
+// next.config.mjs
+
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  serverExternalPackages: ["mongodb"],
+};
 
 export default nextConfig;

@@ -1,80 +1,97 @@
+// src/components/Projects.jsx
+
 "use client";
-import Image from "next/image";
+import { useEffect, useState } from "react";
+import Image from "next/image"; // Don't forget this import!
 
 export default function Projects() {
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        // Now using the clean, correct API route: /api/projects
+        const res = await fetch("/api/projects");
+        if (!res.ok) throw new Error("Failed to fetch projects");
+        const data = await res.json();
+        setProjects(data);
+      } catch (err) {
+        // You can use the console in your browser to check for this error
+        console.error("Error fetching projects from API:", err);
+      }
+    }
+
+    fetchProjects();
+  }, []); // Empty dependency array ensures it runs only once on mount
+
   return (
-    <section id="projects" className="py-20 px-8 bg-gray-50 text-center">
-      <h2 className="text-3xl font-semibold mb-10">Projects</h2>
+    <section id="projects" className="py-20 px-8 text-center">
+      <h2 className="text-4xl font-extrabold mb-12">Projects</h2>
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Engineering / University Projects */}
-        <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-          <div className="h-48 relative">
-            <Image
-              src="/assets/project1.jpg"
-              alt="Engineering Project"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="p-6">
-            <h3 className="text-xl font-semibold mb-2">Engineering</h3>
-            <p className="text-gray-600 mb-4">University projects</p>
-            <a
-              href="#"
-              className="inline-block px-5 py-2 bg-gray-900 text-white rounded-full hover:bg-gray-700 transition"
-            >
-              View Projects
-            </a>
-          </div>
+      {projects.length === 0 ? (
+        <p className="text-lg text-gray-500">
+          {/* This will only show if the fetch fails or is still loading */}
+          Fetching projects or no data found...
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {projects.map(
+            (
+              project // ⬅️ DYNAMIC MAPPING LOOP
+            ) => (
+              <div
+                key={project._id}
+                // Tailwind styles for a clean, modern card
+                className="p-0 bg-white shadow-xl hover:shadow-2xl transition duration-300 rounded-2xl text-left overflow-hidden border border-gray-100 transform hover:-translate-y-1"
+              >
+                {project.imageUrl && (
+                  <div className="relative h-56 w-full">
+                    <Image
+                      src={project.imageUrl}
+                      alt={project.title}
+                      fill
+                      style={{ objectFit: "cover" }}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="transition duration-500 ease-in-out hover:scale-105"
+                    />
+                  </div>
+                )}
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">
+                    {project.title}
+                  </h3>
+                  <p className="text-gray-600 mb-4">{project.description}</p>
+                  {project.link && (
+                    <a
+                      href={project.link}
+                      target="_blank"
+                      className="text-blue-600 font-medium hover:underline flex items-center gap-1"
+                      rel="noopener noreferrer"
+                    >
+                      View Project
+                      {/* SVG icon for external link */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-4 h-4"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                        />
+                      </svg>
+                    </a>
+                  )}
+                </div>
+              </div>
+            )
+          )}
         </div>
-
-        {/* Personal Development Projects */}
-        <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-          <div className="h-48 relative">
-            <Image
-              src="/assets/project2.jpg"
-              alt="Personal Development"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="p-6">
-            <h3 className="text-xl font-semibold mb-2">Software Development</h3>
-            <p className="text-gray-600 mb-4">Web & app projects</p>
-            <a
-              href="#"
-              className="inline-block px-5 py-2 bg-gray-900 text-white rounded-full hover:bg-gray-700 transition"
-            >
-              View Projects
-            </a>
-          </div>
-        </div>
-
-        {/* Music */}
-        <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-          <div className="h-48 relative">
-            <Image
-              src="/assets/profile.jpg"
-              alt="Music"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="p-6">
-            <h3 className="text-xl font-semibold mb-2">My Music</h3>
-            <p className="text-gray-600 mb-4">
-              Showcasing my music on Spotify.
-            </p>
-            <a
-              href="#"
-              className="inline-block px-5 py-2 bg-gray-900 text-white rounded-full hover:bg-gray-700 transition"
-            >
-              Listen Now
-            </a>
-          </div>
-        </div>
-      </div>
+      )}
     </section>
   );
 }

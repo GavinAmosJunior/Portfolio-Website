@@ -1,34 +1,89 @@
 "use client";
 
-export default function Contact() {
+import { useState } from "react";
+
+export default function ContactRoutePage() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+  const [status, setStatus] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("Sending...");
+
+    const res = await fetch("/api/send-message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (res.ok) {
+      setStatus("Message sent!");
+      setFormData({ name: "", email: "", message: "" });
+    } else {
+      setStatus("Something went wrong. Try again.");
+    }
+  };
+
   return (
-    <section id="contact" className="py-20 px-8 bg-white text-center">
-      <h2 className="text-3xl font-semibold mb-6">Contact Me</h2>
-      <p className="text-lg text-gray-600 mb-6">
-        Interested in working together or just want to say hi? You can reach me
-        via email or social media.
-      </p>
-      <div className="flex flex-col sm:flex-row justify-center gap-4">
-        <a
-          href="mailto:gavinjunior@example.com"
-          className="px-6 py-3 bg-gray-900 text-white rounded-full hover:bg-gray-700 transition"
+    <section className="min-h-screen flex flex-col items-center justify-center bg-white px-6 py-16">
+      <div className="max-w-lg w-full">
+        <h2 className="text-3xl font-semibold text-gray-800 mb-6 text-center">
+          Get in Touch
+        </h2>
+
+        <form
+          onSubmit={handleSubmit}
+          className="bg-gray-50 shadow-md rounded-2xl p-8 space-y-6 border border-gray-100"
         >
-          Send an Email
-        </a>
-        <a
-          href="https://www.linkedin.com/in/gavinjunior"
-          target="_blank"
-          className="px-6 py-3 border border-gray-900 rounded-full text-gray-900 hover:bg-gray-100 transition"
-        >
-          LinkedIn
-        </a>
-        <a
-          href="https://github.com/gavinjunior"
-          target="_blank"
-          className="px-6 py-3 border border-gray-900 rounded-full text-gray-900 hover:bg-gray-100 transition"
-        >
-          GitHub
-        </a>
+          <input
+            type="text"
+            name="name"
+            placeholder="Your Name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+          />
+
+          <input
+            type="email"
+            name="email"
+            placeholder="Your Email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+          />
+
+          <textarea
+            name="message"
+            placeholder="Your Message"
+            value={formData.message}
+            onChange={handleChange}
+            required
+            rows="5"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+          />
+
+          <button
+            type="submit"
+            className="w-full bg-gray-800 text-white font-medium py-3 rounded-xl hover:bg-gray-700 transition"
+          >
+            Send Message
+          </button>
+
+          {status && (
+            <p className="text-center text-sm text-gray-600">{status}</p>
+          )}
+        </form>
       </div>
     </section>
   );

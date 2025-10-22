@@ -1,7 +1,11 @@
+// jsconfig.json
 {
   "compilerOptions": {
+    "baseUrl": "src",
     "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+      "@/*": ["*"]
+    },
+    "moduleResolution": "node"
+  },
+  "include": ["src/**/*"]
 }

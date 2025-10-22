@@ -1,5 +1,7 @@
+// /src/app/layout.js
+
 import "./globals.css";
-import Navbar from "./components/Navbar";
+import HeaderWrapper from "./components/HeaderWrapper"; // ✅ IMPORT NEW WRAPPER
 
 export const metadata = {
   title: "Gavin Junior | Portfolio",
@@ -11,7 +13,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <Navbar />
+        {/* Replace Navbar with the conditional wrapper */}
+        <HeaderWrapper />
         {children}
       </body>
     </html>

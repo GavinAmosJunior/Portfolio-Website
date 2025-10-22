@@ -1,0 +1,18 @@
+// src/app/api/login/route.js
+import { NextResponse } from "next/server";
+
+export async function POST(request) {
+  const body = await request.json();
+  const { password } = body;
+
+  if (password === process.env.ADMIN_PASSWORD) {
+    // In a real app, you'd set a secure cookie/session here.
+    // For this simple dashboard, we'll return a basic token/success.
+    return NextResponse.json({ success: true, token: "validated" });
+  }
+
+  return NextResponse.json(
+    { success: false, message: "Invalid credentials." },
+    { status: 401 }
+  );
+}
