@@ -1,23 +1,20 @@
-// src/app/api/projects/route.js
+// /src/app/api/projects/route.js
 
 import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 
-// --- SECURITY CHECK ---
+// --- SECURITY CHECK (Remains Correct) ---
 function checkAuthFromRequest(request) {
   const authHeader = request.headers.get("authorization");
-  const token = authHeader?.split(" ")[1]; // extract after "Bearer"
+  const token = authHeader?.split(" ")[1];
 
-  // FIX 1: Change token check to match the name in .env.local
-  // This must match the token returned by the login API (which is API_SECRET_TOKEN)
   if (!token || token !== process.env.API_SECRET_TOKEN) {
     return NextResponse.json(
-      { message: "Unauthorized: Invalid or missing admin token." },
+      { message: "Unauthorized: Invalid or missing API token." },
       { status: 401 }
     );
   }
-
   return null;
 }
 // ---------------------------------
@@ -29,7 +26,19 @@ export async function GET() {
     const client = await clientPromise;
     const db = client.db("PortfolioDB");
     const projects = await db.collection("projects").find({}).toArray();
-    return NextResponse.json(projects);
+
+    // 🍎 FINAL FIX 1: Map through projects to ensure the main card has a single imageUrl
+    const formattedProjects = projects.map((project) => ({
+      ...project,
+      // If imageUrls exists (new data), use the first one for the card display.
+      // Otherwise, use the old imageUrl field (for existing data).
+      imageUrl:
+        Array.isArray(project.imageUrls) && project.imageUrls.length > 0
+          ? project.imageUrls[0]
+          : project.imageUrl,
+    }));
+
+    return NextResponse.json(formattedProjects);
   } catch (error) {
     console.error("Failed to fetch projects:", error);
     return NextResponse.json(
@@ -51,13 +60,27 @@ export async function POST(request) {
 
     const body = await request.json();
 
-    // 🧩 STRONGER FIX: remove _id if it's empty, null, or blank
-    if (!body.title || !body.description) {
+    if (!body.title || !body.shortDescription) {
       return NextResponse.json(
-        { message: "Missing required fields (title or description)." },
+        { message: "Missing required fields (title or short description)." },
         { status: 400 }
       );
     }
+
+    // 🛠️ IMAGE FIX: Promote imageBase64 array to imageUrls
+    if (body.imageBase64) {
+      body.imageUrls = body.imageBase64;
+      delete body.imageBase64;
+    }
+
+    // PDF FIX
+    if (body.pdfBase64) {
+      body.pdfUrl = body.pdfBase64;
+      delete body.pdfBase64;
+    }
+
+    // Clean up outdated fields
+    delete body.description;
 
     if ("_id" in body) {
       if (!body._id || body._id === "" || body._id === null) {
@@ -93,7 +116,7 @@ export async function PATCH(request) {
     const collection = db.collection("projects");
 
     const body = await request.json();
-    const { _id, ...updateFields } = body;
+    const { _id, imageBase64, pdfBase64, ...updateFields } = body;
 
     if (!_id) {
       return NextResponse.json(
@@ -101,6 +124,17 @@ export async function PATCH(request) {
         { status: 400 }
       );
     }
+
+    // 🛠️ IMAGE FIX: If new images were submitted, promote them
+    if (imageBase64) {
+      updateFields.imageUrls = imageBase64;
+    }
+    if (pdfBase64) {
+      updateFields.pdfUrl = pdfBase64;
+    }
+
+    // Clean up outdated fields
+    delete updateFields.description;
 
     const result = await collection.updateOne(
       { _id: new ObjectId(_id) },
@@ -134,7 +168,7 @@ export async function PATCH(request) {
 export async function DELETE(request) {
   const authError = checkAuthFromRequest(request);
   if (authError) return authError;
-
+  // ... (rest of DELETE logic is correct)
   try {
     const client = await clientPromise;
     const db = client.db("PortfolioDB");
@@ -167,7 +201,7 @@ export async function DELETE(request) {
     console.error("Failed to delete project:", error);
     return NextResponse.json(
       {
-        message: "Internal server error while deleting project.",
+        message: "Internal server error while adding project.",
         error: error.message,
       },
       { status: 500 }

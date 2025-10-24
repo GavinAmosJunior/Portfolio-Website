@@ -25,7 +25,37 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* 🚀 PHASE 4 FIX: ADDED SMOOTH SCROLLING FOR UX */
+/* 🍎 SCROLLBAR FIX */
+body,
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 10px;
+  border: 2px solid #f3f4f6;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #a1a1a1;
+}
+
+/* 💥 EXTREME FIX: Force Transition on Modal */
+.force-transition {
+  /* Set transition duration to 3 seconds */
+  transition-property: opacity, transform, visibility;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 html {
   scroll-behavior: smooth;
 }

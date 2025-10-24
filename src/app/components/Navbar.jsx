@@ -1,3 +1,4 @@
+// /src/app/components/Navbar.jsx
 "use client";
 import { useEffect, useState } from "react";
 
@@ -23,7 +24,8 @@ export default function Navbar() {
       {/* Left side: refresh link */}
       <a
         href="/"
-        className="text-2xl font-bold text-gray-900 hover:opacity-80 transition"
+        // 🛠️ FIX: Added flex-shrink-0 and whitespace-nowrap for mobile stacking fix
+        className="text-2xl font-bold text-gray-900 hover:opacity-80 transition flex-shrink-0 whitespace-nowrap"
       >
         Gavin Amos Junior
       </a>
