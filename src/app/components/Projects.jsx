@@ -1,5 +1,3 @@
-// src/components/Projects.jsx
-
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -24,7 +22,6 @@ export default function Projects() {
     fetchProjects();
   }, []);
 
-  // Handlers for Modal
   const openModal = (projectData) => {
     setSelectedProject(projectData);
     setIsModalOpen(true);
@@ -44,11 +41,13 @@ export default function Projects() {
       id="projects"
       className="py-20 px-8 text-center bg-white dark:bg-white"
     >
-      <h2 className="text-4xl font-extrabold mb-12">Projects</h2>
+      <h2 className="text-4xl font-bold text-gray-900 mb-6 tracking-tight">
+        Projects
+      </h2>
 
       {projects.length === 0 ? (
         <p className="text-lg text-gray-500">
-          Fetching projects or no data found...
+          Loading Projects... Chotto Matte
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -56,29 +55,32 @@ export default function Projects() {
             <div
               key={project._id}
               onClick={() => openModal(project)}
-              className="p-0 bg-white shadow-xl hover:shadow-2xl transition duration-300 rounded-2xl text-left overflow-hidden border border-gray-100 transform hover:-translate-y-1 cursor-pointer"
+              className="group cursor-pointer rounded-2xl bg-white/70 backdrop-blur-sm border border-gray-100
+                         shadow-md hover:shadow-2xl transition-all duration-500
+                         hover:-translate-y-1 active:scale-[0.98] overflow-hidden"
             >
-              {/* 🍎 FINAL FIX 2: Check for a valid URL before rendering Image tag */}
+              {/* ✅ IMAGE */}
               {project.imageUrl &&
                 typeof project.imageUrl === "string" &&
                 project.imageUrl.length > 5 && (
                   <div className="relative w-full h-56 overflow-hidden">
                     <Image
-                      // Now safe to use project.imageUrl as the API guarantees it's the first image
                       src={project.imageUrl}
                       alt={project.title}
                       fill
                       style={{ objectFit: "cover" }}
                       sizes="(max-width: 768px) 100vw, 33vw"
-                      className="transition duration-500 ease-in-out hover:scale-105"
+                      className="transition-transform duration-700 ease-[cubic-bezier(0.25,0.1,0.25,1)] group-hover:scale-105"
                     />
                   </div>
                 )}
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-2">
+
+              {/* ✅ TEXT CONTENT (Now wrapped properly inside same rounded container) */}
+              <div className="p-6 bg-white/80 transition-colors duration-300 group-hover:bg-white/90">
+                <h3 className="text-xl font-semibold text-neutral-800 mb-2 group-hover:text-black">
                   {project.title}
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-sm text-neutral-500 group-hover:text-neutral-700">
                   {project.shortDescription || project.description}
                 </p>
               </div>
@@ -87,7 +89,7 @@ export default function Projects() {
         </div>
       )}
 
-      {/* RENDER THE MODAL COMPONENT */}
+      {/* ✅ MODAL */}
       <ProjectModal
         project={selectedProject}
         isOpen={isModalOpen}

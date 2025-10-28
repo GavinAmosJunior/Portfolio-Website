@@ -48,7 +48,9 @@ export default function AdminLogin() {
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm"
       >
-        <h1 className="text-2xl font-bold mb-4 text-center">Admin Login</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center">
+          You Shall Not Pass!
+        </h1>
         <input
           type="password"
           placeholder="Enter admin password"

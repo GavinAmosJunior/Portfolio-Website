@@ -59,3 +59,20 @@ body,
 html {
   scroll-behavior: smooth;
 }
+
+/* keep gutter stable so scrollbar doesn't push content */
+.modal-scroll {
+  scrollbar-gutter: stable;
+}
+
+/* optional: nicer webkit scrollbar (width + rounded thumb) */
+.modal-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.modal-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 2px solid transparent; /* makes the thumb inset so it doesn't overflow */
+  background-clip: padding-box;
+}

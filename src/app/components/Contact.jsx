@@ -18,25 +18,38 @@ export default function ContactRoutePage() {
     e.preventDefault();
     setStatus("Sending...");
 
-    const res = await fetch("/api/send-message", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    try {
+      const res = await fetch("/api/send-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-    if (res.ok) {
-      setStatus("Message sent!");
-      setFormData({ name: "", email: "", message: "" });
-    } else {
-      setStatus("Something went wrong. Try again.");
+      if (res.ok) {
+        setStatus("Message sent successfully! Thank you.");
+        // Clear form fields
+        setFormData({ name: "", email: "", message: "" });
+      } else {
+        const errorData = await res.json();
+        setStatus(
+          `Failed to send message: ${errorData.message || "Server Error"}`
+        );
+      }
+    } catch (error) {
+      setStatus("A network error occurred. Please try again.");
+      console.error("Contact form network error:", error);
     }
   };
 
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center bg-white px-6 py-16">
+    // 🍎 FINAL NAVIGATION FIX: Added id="contact" to the section element
+    <section
+      id="contact"
+      className="min-h-screen flex flex-col items-center justify-center p-8 bg-white"
+    >
       <div className="max-w-lg w-full">
         <h2 className="text-3xl font-semibold text-gray-800 mb-6 text-center">
-          Get in Touch
+          Contact Me
         </h2>
 
         <form
@@ -75,13 +88,20 @@ export default function ContactRoutePage() {
 
           <button
             type="submit"
+            disabled={status === "Sending..."}
             className="w-full bg-gray-800 text-white font-medium py-3 rounded-xl hover:bg-gray-700 transition"
           >
-            Send Message
+            {status === "Sending..." ? "Sending..." : "Send Message"}
           </button>
 
           {status && (
-            <p className="text-center text-sm text-gray-600">{status}</p>
+            <p
+              className={`text-center text-sm ${
+                status.includes("Failed") ? "text-red-500" : "text-green-600"
+              }`}
+            >
+              {status}
+            </p>
           )}
         </form>
       </div>

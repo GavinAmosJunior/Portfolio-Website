@@ -4,9 +4,10 @@ import React, { useState, useEffect } from "react";
 
 export default function ProjectModal({ project, isOpen, onClose }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [active, setActive] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
+  const [imageFading, setImageFading] = useState(false);
 
-  // 🛠️ GALLERY FIX 1: Ensure the array of images is retrieved from the project object
-  // It now safely defaults to the main card image if the array is empty.
   const images =
     Array.isArray(project?.imageUrls) && project.imageUrls.length > 0
       ? project.imageUrls
@@ -14,28 +15,43 @@ export default function ProjectModal({ project, isOpen, onClose }) {
       ? [project.imageUrl]
       : [];
 
+  // ⚙️ Modal open/close transitions (Logic remains the same)
   useEffect(() => {
     if (isOpen) {
+      setActive(true);
       document.body.style.overflow = "hidden";
-    } else {
-      setTimeout(() => {
-        if (!isOpen) {
-          document.body.style.overflow = "unset";
-        }
-      }, 300);
+      setTimeout(() => setTransitioning(true), 10);
+    } else if (active) {
+      setTransitioning(false);
+      setTimeout(() => setActive(false), 300);
+      document.body.style.overflow = "unset";
     }
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOpen]);
+  }, [isOpen, active]);
 
+  if (!active && !isOpen) return null;
   if (!project) return null;
 
-  // Utility Functions
-  const goToNext = () =>
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
-  const goToPrev = () =>
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  // 🔄 Image Navigation (Logic remains the same)
+  const goToNext = () => {
+    setImageFading(true);
+    setTimeout(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+      setImageFading(false);
+    }, 250);
+  };
+
+  const goToPrev = () => {
+    setImageFading(true);
+    setTimeout(() => {
+      setCurrentImageIndex(
+        (prev) => (prev - 1 + images.length) % images.length
+      );
+      setImageFading(false);
+    }, 250);
+  };
 
   const handlePdfDownload = () => {
     if (project.pdfUrl) {
@@ -48,179 +64,161 @@ export default function ProjectModal({ project, isOpen, onClose }) {
     }
   };
 
-  // 🛠️ FIX 2: Added keyType to link rendering for unique keys
+  // 🍎 FINAL FIX: RENDER LINK BUTTON (Refined Typography)
   const renderLinkButton = (url, isPrimary, keyType) => {
     if (!url) return null;
 
     let text = "View Project";
-    let colorClass = isPrimary
-      ? "bg-black text-white hover:bg-gray-800"
-      : "border border-gray-300 text-gray-700 hover:bg-gray-100";
-
     if (url.includes("github")) {
-      text = "View Code on GitHub";
-      colorClass = "border border-gray-300 text-gray-700 hover:bg-gray-100";
-    } else if (url.includes("youtube") || url.includes("vimeo")) {
+      text = "View on GitHub";
+    } else if (
+      url.includes("youtube") ||
+      url.includes("vimeo") ||
+      url.includes("demo")
+    ) {
       text = "Watch Demonstration";
-      colorClass = "bg-red-600 text-white hover:bg-red-700";
     } else if (isPrimary) {
-      text = "Visit Live Project";
-      colorClass = "bg-black text-white hover:bg-gray-800";
+      text = "Visit Live Demo";
     }
+
+    // NEW TYPOGRAPHY: font-medium, text-base, tracking-tight
+    const buttonTextClasses = "font-medium text-base tracking-tight";
+
+    const baseClass = `w-full flex items-center justify-center py-3 rounded-2xl ${buttonTextClasses} transition-all duration-200 active:scale-[0.99] shadow-[0_4px_16px_rgba(0,0,0,0.05)]`;
+
+    const colorClass = isPrimary
+      ? "bg-black text-white/90 hover:bg-neutral-800 hover:text-white"
+      : "bg-white/70 border border-gray-200 text-gray-800 hover:bg-white";
 
     return (
       <a
-        // 🍎 FIX 3: Combine URL and type for a unique key
         key={`${url}-${keyType}`}
         href={url}
         target="_blank"
         rel="noopener noreferrer"
         className="w-full"
       >
-        <button
-          className={`w-full font-medium py-3 rounded-xl transition duration-300 ${colorClass}`}
-        >
-          {text}
-        </button>
+        <button className={`${baseClass} ${colorClass}`}>{text}</button>
       </a>
     );
   };
 
+  // --- COMPONENT ---
   return (
-    // 1. OVERLAY (Smooth Fade + Backdrop Blur)
     <div
-      className={`
-        fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300
-        ${
-          isOpen
-            ? "opacity-100 bg-gray-900/70 backdrop-blur-md"
-            : "opacity-0 pointer-events-none"
-        } 
-      `}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 overflow-hidden ${
+        transitioning
+          ? "opacity-100 bg-gray-900/70 backdrop-blur-md"
+          : "opacity-0 pointer-events-none"
+      }`}
       onClick={onClose}
     >
-      {/* 2. MODAL CONTAINER (Smooth Scale-In/Out) */}
+      {/* MODAL CONTAINER */}
       <div
-        className={`
-          bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col transition duration-300
-          ${isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"} 
-        `}
+        className={`relative bg-white rounded-3xl shadow-2xl w-full max-w-3xl md:max-w-4xl transform transition-all duration-300 ${
+          transitioning ? "scale-100 opacity-100" : "scale-95 opacity-0"
+        } overflow-hidden`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* CLOSE BUTTON */}
+        {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={() => {
+            setTransitioning(false);
+            setTimeout(() => onClose(), 300);
+          }}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition z-50 text-2xl font-light"
           aria-label="Close"
         >
           &times;
         </button>
 
-        {/* 3. CONTENT AREA - Responsive Layout */}
-        <div className="flex flex-col md:flex-row h-full overflow-y-auto">
-          {/* A. IMAGE GALLERY AREA */}
-          <div className="md:w-1/2 flex-shrink-0 bg-gray-100 relative overflow-hidden flex flex-col justify-center items-center p-6 md:p-0">
-            {/* Main Image Display */}
-            <div className="w-full h-full flex items-center justify-center relative">
-              <img
-                // 🍎 FIX 4: Image now points to the current index of the image array
-                src={images[currentImageIndex] || ""}
-                alt={project.title}
-                className="max-h-full max-w-full object-contain p-4 rounded-3xl"
-              />
-
-              {/* Gallery Navigation Controls */}
-              {images.length > 1 && (
-                <>
-                  <button
-                    onClick={goToPrev}
-                    className="absolute left-2 p-2 bg-white/70 rounded-full text-gray-800 shadow-md hover:bg-white transition hidden md:block"
-                    aria-label="Previous Image"
-                  >
-                    &lt;
-                  </button>
-                  <button
-                    onClick={goToNext}
-                    className="absolute right-2 p-2 bg-white/70 rounded-full text-gray-800 shadow-md hover:bg-white transition hidden md:block"
-                    aria-label="Next Image"
-                  >
-                    &gt;
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* Thumbnail Navigation (Visible on both mobile/desktop for full gallery experience) */}
-            {images.length > 1 && (
-              <div className="flex justify-center p-2 space-x-2 overflow-x-auto w-full border-t bg-white">
-                {images.map((src, index) => (
-                  <div
-                    key={index}
-                    className={`flex-shrink-0 w-12 h-12 border-2 ${
-                      index === currentImageIndex
-                        ? "border-gray-900"
-                        : "border-transparent"
-                    } cursor-pointer transition`}
-                    onClick={() => setCurrentImageIndex(index)}
-                  >
-                    <img
-                      src={src}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
+        {/* SCROLLABLE CONTENT AREA */}
+        <div className="overflow-y-auto max-h-[90vh] modal-scroll">
+          {/* IMAGE AREA */}
+          <div className="w-full bg-neutral-100 relative overflow-hidden flex items-center justify-center p-4 md:p-6 rounded-t-3xl transition-colors">
+            {/* Image logic remains the same */}
+            {images.length > 0 && (
+              <div
+                className={`relative w-full max-w-full md:max-w-xl flex justify-center transition-opacity duration-500 ${
+                  imageFading ? "opacity-0" : "opacity-100"
+                }`}
+              >
+                <img
+                  src={images[currentImageIndex]}
+                  alt={project.title}
+                  className="max-h-80 w-auto object-contain rounded-2xl shadow-sm"
+                />
               </div>
+            )}
+
+            {/* Arrows */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={goToPrev}
+                  className="absolute left-4 top-[50%] -translate-y-1/2 p-2 bg-white/70 rounded-full text-gray-800 shadow-lg hover:bg-white transition z-20"
+                  aria-label="Previous Image"
+                >
+                  &lt;
+                </button>
+                <button
+                  onClick={goToNext}
+                  className="absolute right-4 top-[50%] -translate-y-1/2 p-2 bg-white/70 rounded-full text-gray-800 shadow-lg hover:bg-white transition z-20"
+                  aria-label="Next Image"
+                >
+                  &gt;
+                </button>
+              </>
             )}
           </div>
 
-          {/* B. TEXT AND DETAILS AREA */}
-          <div className="md:w-1/2 p-8 space-y-8 flex flex-col">
-            {/* Title and Summary */}
-            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
-              {project.title}
-            </h1>
+          {/* 🍎 TEXT BODY */}
+          <div className="p-6 md:p-10 space-y-10 flex flex-col text-left bg-white">
+            {/* Title */}
+            <div className="space-y-1">
+              <h1 className="text-4xl font-semibold tracking-tight text-gray-900">
+                {project.title}
+              </h1>
+            </div>
 
-            {/* Detail/Narrative Area (Scrollable) */}
-            <div className="overflow-y-auto flex-grow space-y-4 text-gray-700 pr-2">
-              {/* Overview Section */}
+            {/* Details */}
+            <div className="space-y-6 text-gray-700">
+              {/* Overview */}
               <div>
-                <h4 className="text-sm font-medium uppercase text-gray-500 mb-1">
+                <h4 className="text-sm font-medium uppercase text-gray-500 mb-2">
                   Overview
                 </h4>
-                <p className="text-lg">{project.shortDescription}</p>
+                <p className="text-lg leading-relaxed">
+                  {project.shortDescription}
+                </p>
               </div>
 
-              {/* Technical Narrative Section */}
+              {/* Technical Narrative */}
               <div>
-                <h4 className="text-sm font-medium uppercase text-gray-500 mb-1 pt-4">
+                <h4 className="text-sm font-medium uppercase text-gray-500 mb-2 pt-4">
                   Technical Narrative
                 </h4>
                 {project.longDescription ? (
-                  <p className="whitespace-pre-wrap text-base leading-relaxed">
+                  <p className="whitespace-pre-wrap text-base leading-relaxed pt-1">
                     {project.longDescription}
                   </p>
                 ) : (
-                  <p className="text-gray-500 italic text-base">
+                  <p className="text-gray-500 italic text-base pt-1">
                     No detailed narrative provided for this project.
                   </p>
                 )}
               </div>
             </div>
 
-            {/* CTA Buttons (Final Fix: Removed Border-T) */}
+            {/* 🔗 Buttons */}
             <div className="flex flex-col space-y-3 pt-6">
-              {/* 1. PRIMARY LINK (Live Project / Demo / Video) */}
               {renderLinkButton(project.liveLink, true, "live")}
-
-              {/* 2. SECONDARY LINK (GitHub) */}
               {renderLinkButton(project.githubLink, false, "github")}
 
-              {/* 3. PDF DOWNLOAD Link */}
               {project.pdfUrl && (
                 <button
                   onClick={handlePdfDownload}
-                  className="w-full border border-gray-300 text-gray-700 font-medium py-3 rounded-xl hover:bg-gray-100 transition shadow-md"
+                  className="w-full py-3 rounded-2xl font-medium text-base tracking-tight transition-all duration-200 active:scale-[0.99] shadow-[0_4px_16px_rgba(0,0,0,0.05)] bg-white/70 border border-gray-200 text-gray-800 hover:bg-white"
                 >
                   Download Documentation (PDF)
                 </button>
