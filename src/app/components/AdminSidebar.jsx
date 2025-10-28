@@ -1,20 +1,18 @@
 import React from "react";
 
-// Define the available views centrally (Now only PROJECTS remains)
+// Define the available views centrally
 export const ADMIN_VIEWS = {
   PROJECTS: "PROJECTS",
-  // SETTINGS view ID has been removed
+  // Removed SETTINGS view
 };
 
 export default function AdminSidebar({ currentView, setView, handleLogout }) {
-  // navItems array now only contains Projects
   const navItems = [
-    { id: ADMIN_VIEWS.PROJECTS, label: "Projects Section" },
-    // Removed: { id: ADMIN_VIEWS.SETTINGS, label: "Site Settings" },
+    { id: ADMIN_VIEWS.PROJECTS, label: "Projects (CRUD)" },
+    // Removed SETTINGS link
   ];
 
   return (
-    // FIX: Ensures full height (h-full) and fixed width (w-56)
     <nav className="w-56 bg-white border-r border-gray-200 p-4 pt-8 flex flex-col h-full shadow-2xl shadow-gray-200/50 flex-shrink-0">
       <h2 className="text-2xl font-bold mb-10 text-neutral-900 px-2">
         Admin Panel
