@@ -21,6 +21,7 @@ export default function AdminDashboard() {
   const [projects, setProjects] = useState([]);
   const [currentProject, setCurrentProject] = useState(null);
 
+  // Defaulting to PROJECTS, as this is the only view now
   const [currentView, setCurrentView] = useState(ADMIN_VIEWS.PROJECTS);
 
   const fetchProjects = async (setter) => {
@@ -46,13 +47,14 @@ export default function AdminDashboard() {
           return;
         }
         setIsAuth(true);
-        if (currentView === ADMIN_VIEWS.PROJECTS) {
-          fetchProjects(setProjects);
-        }
+        fetchProjects(setProjects);
       }
     }
     initDashboard();
-  }, [router, currentView]);
+
+    // Ensure view stays on PROJECTS
+    setCurrentView(ADMIN_VIEWS.PROJECTS);
+  }, [router]);
 
   const handleProjectAction = (actionType) => {
     if (actionType !== "CLEAR") {
@@ -71,59 +73,43 @@ export default function AdminDashboard() {
   }
 
   const renderContentView = () => {
-    switch (currentView) {
-      case ADMIN_VIEWS.PROJECTS:
-        return (
-          <div className="max-w-5xl mx-auto p-6 md:p-10 space-y-16">
-            <h1 className="text-4xl font-light tracking-tight text-gray-800 mb-6">
-              Project Management
-            </h1>
+    // FIX: Simplified to ONLY render the Project Management block.
+    // The switch/case for SETTINGS is completely removed.
+    return (
+      <div className="max-w-5xl mx-auto p-6 md:p-10 space-y-16">
+        <h1 className="text-4xl font-light tracking-tight text-gray-800 mb-6">
+          Project Management
+        </h1>
 
-            {/* FIX: Removed "Add/Edit Project" text */}
-            {/* <h2 className="text-3xl font-light tracking-tight text-gray-800 mb-4 px-1">
-              Add/Edit Project
-            </h2> */}
-            <ProjectForm
-              currentProject={currentProject}
-              onSave={handleProjectAction}
-            />
+        <ProjectForm
+          currentProject={currentProject}
+          onSave={handleProjectAction}
+        />
 
-            <div className="bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
-              <h2 className="text-3xl font-light tracking-tight text-gray-800 mb-6">
-                Existing Projects
-              </h2>
-              <ProjectListAdmin
-                projects={projects}
-                onEdit={handleEdit}
-                onDelete={handleProjectAction}
-              />
-            </div>
-          </div>
-        );
-
-      case ADMIN_VIEWS.SETTINGS:
-        return (
-          <div className="max-w-4xl mx-auto p-6 md:p-10">
-            <h1 className="text-4xl font-light tracking-tight text-gray-800 mb-6">
-              Site Configuration
-            </h1>
-            <SettingsView />
-          </div>
-        );
-
-      default:
-        return null;
-    }
+        <div className="bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
+          <h2 className="text-3xl font-light tracking-tight text-gray-800 mb-6">
+            Existing Projects
+          </h2>
+          <ProjectListAdmin
+            projects={projects}
+            onEdit={handleEdit}
+            onDelete={handleProjectAction}
+          />
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="h-screen bg-gray-50 flex overflow-hidden">
+      {/* 1. Sidebar Component (Only shows 'Projects' link) */}
       <AdminSidebar
         currentView={currentView}
         setView={setCurrentView}
         handleLogout={handleLogout}
       />
 
+      {/* 2. Main Content Area (Scrollable) */}
       <main className="flex-1 overflow-y-auto">{renderContentView()}</main>
     </div>
   );
